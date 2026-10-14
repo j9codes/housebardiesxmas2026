@@ -56,30 +56,14 @@ import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmai
 import {getFirestore,collection,doc,setDoc,getDoc,deleteDoc,onSnapshot,increment} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ====== 1. PASTE YOUR FIREBASE CONFIG HERE (see README) ======
- <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyCYmnpfs27mhCIapWR6ckOT2582MD8T9n8",
-    authDomain: "house-bardies-christmas-2026.firebaseapp.com",
-    projectId: "house-bardies-christmas-2026",
-    storageBucket: "house-bardies-christmas-2026.firebasestorage.app",
-    messagingSenderId: "504469730302",
-    appId: "1:504469730302:web:7052a64d00612cd14a86af",
-    measurementId: "G-C2ZVHL2LWR"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-const firebaseConfig={apiKey:"PASTE",authDomain:"PASTE",projectId:"PASTE",appId:"PASTE"};
+const firebaseConfig={
+  apiKey:"AIzaSyCYmnpfs27mhCIapWR6ckOT2582MD8T9n8",
+  authDomain:"house-bardies-christmas-2026.firebaseapp.com",
+  projectId:"house-bardies-christmas-2026",
+  storageBucket:"house-bardies-christmas-2026.firebasestorage.app",
+  messagingSenderId:"504469730302",
+  appId:"1:504469730302:web:7052a64d00612cd14a86af"
+};
 const EVENT_DATE="2026-12-25",MAX=10,DOMAIN="@bardies.example";
 // =============================================================
 

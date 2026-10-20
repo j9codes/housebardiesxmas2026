@@ -28,7 +28,7 @@ button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(
 .notes summary{cursor:pointer;font-weight:600;color:var(--gr)}.notes ul{margin:8px 0 2px;padding-left:20px}.notes li{margin:6px 0}
 .foot{text-align:center;padding:18px;color:var(--mu);font-size:13px}.emo{text-align:center;font-size:26px;letter-spacing:6px}
 </style></head><body>
-<header><h1>🎄 House Bardies Christmas 2026 ❄️ <span style="font-size:11px;font-weight:400;opacity:.7">v5</span></h1><div id="who"></div></header>
+<header><h1>🎄 House Bardies Christmas 2026 ❄️ <span style="font-size:11px;font-weight:400;opacity:.7">v6</span></h1><div id="who"></div></header>
 <div class="cane"></div>
 <main>
 <div id="msg" class="err"></div>
@@ -43,10 +43,10 @@ button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(
 </section>
 <section id="app" class="hide">
 <div class="banner" id="bn"></div>
-<details class="notes" open><summary>🎅 Please Read:</summary><ul>
-<li><b>Be as specific as possible.</b> Notes, prices, and images are all optional, but they really help your Secret Santa get you the right thing.</li>
+<details class="notes" open><summary>🎅 Please read: how this works</summary><ul>
+<li><b>Be as specific as possible.</b> Notes, prices and images are all optional, but they really help your Secret Santa get you the right thing.</li>
 <li><b>Add gifts at different price points</b>, from small treats to bigger things.</li>
-<li><b>Group gift notes:</b> if you pick a group gift, you'll see a note from anyone else who's open to splitting it. These notes are only visible to the people who picked that item, never to the person it's for.</li>
+<li><b>Group gift notes:</b> if you pick a group gift, you'll see a note from anyone else who's open to splitting it, unless you've already talked about it among yourselves. These notes are only visible to the people who picked that item, never to the person it's for.</li>
 </ul></details>
 <div class="tabs"><button id="t1" class="on">Everyone's lists</button><button id="t2">My "to gift" list</button></div>
 <div id="board">
@@ -56,13 +56,13 @@ button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(
 <div class="row"><input id="wn" placeholder="Be specific: size, colour, brand… (optional)" maxlength="120"><input id="wpr" placeholder="Approx. price (optional)" maxlength="20"></div>
 <input id="wl" placeholder="Link (optional) https://…">
 <div class="row"><select id="wpi"><option value="1">Must-have</option><option value="2" selected>Nice to have</option><option value="3">Dream</option></select>
-<label style="padding-top:8px"><input type="checkbox" id="wg"> Group gift: can split with others/open to receiving more than 1!</label></div>
+<label style="padding-top:8px"><input type="checkbox" id="wg"> Group gift: I'd be happy to receive more than 1 of this</label></div>
 <div class="mu">Image (optional)</div><input id="wi" type="file" accept="image/*" style="margin-bottom:10px">
 <div id="we" class="err"></div><button class="p" id="add">Add item</button> <button id="cx" class="hide">Cancel edit</button></div></div>
 <div id="lists" class="grid"></div></div>
 <div id="gifts" class="hide"></div>
 </section></main>
-<footer class="foot">🎄 ❄️ 🎁 designed by J9 ⛄ 🎅 🎄</footer>
+<footer class="foot">🎄 ❄️ 🎁 Merry Christmas from House Bardies ⛄ 🎅 🎄</footer>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -82,7 +82,7 @@ const EVENT_DATE="2026-12-25",MAX=15,DOMAIN="@bardies.example";
 
 const $=s=>document.querySelector(s);
 const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)k=='class'?e.className=a[k]:k.startsWith('on')?e.addEventListener(k.slice(2),a[k]):e.setAttribute(k,a[k]);c.flat().filter(x=>x!=null&&x!==false).forEach(x=>e.append(x));return e};
-const S={uid:null,profiles:[],wishes:[],taken:{},gifts:[],members:{},reg:false,tab:1,edit:null,img:undefined};
+const S={uid:null,profiles:[],wishes:[],taken:{},gifts:[],members:{},gerr:{},left:{},joined:{},reg:false,tab:1,edit:null,img:undefined};
 const PR=["","Must-have","Nice to have","Dream"];
 const safeUrl=u=>/^https?:\/\//i.test(u||'')?u:null;
 if(firebaseConfig.apiKey==="PASTE"){$('#msg').textContent='Setup needed: paste your Firebase config into index.html (see README).';throw 0}
@@ -94,15 +94,20 @@ const stop=()=>{unsubs.forEach(f=>f());unsubs=[];Object.values(gs).forEach(f=>f(
 function syncGroups(){
  const ids=new Set(S.gifts.map(g=>g.wish));
  for(const id of Object.keys(gs))if(!ids.has(id)){gs[id]();delete gs[id];delete S.members[id]}
- for(const id of ids)if(!gs[id])gs[id]=onSnapshot(collection(db,'groups',id,'members'),s=>{S.members[id]=s.docs.map(d=>({id:d.id,...d.data()}));render()},()=>{});
+ for(const id of ids)if(!gs[id])gs[id]=onSnapshot(collection(db,'groups',id,'members'),s=>{S.members[id]=s.docs.map(d=>({id:d.id,...d.data()}));delete S.gerr[id];render()},e=>{S.gerr[id]=e.code||e.message;render()});
+}
+function heal(){
+ for(const g of S.gifts){const w=S.wishes.find(x=>x.id===g.wish),ms=S.members[g.wish];
+  if(w&&w.group&&ms&&!S.left[g.wish]&&!S.joined[g.wish]&&!ms.some(m=>m.id===S.uid)){S.joined[g.wish]=1;setNote(g.wish,'').catch(()=>{})}}
 }
 function groupBox(w){
  const ms=S.members[w.id]||[],mine=ms.find(m=>m.id===S.uid);
  const inp=h('input',{placeholder:"Open to splitting? e.g. I'll order it, send me $20",maxlength:140,value:mine?.note||''});
  return h('div',{style:'margin-top:8px;padding:8px;border:1px dashed var(--bd);border-radius:8px'},
   h('div',{class:'mu'},'Group gift · '+(S.taken[w.id]||1)+' picked this · notes are only visible to people who picked it'),
+  S.gerr[w.id]?h('div',{class:'err'},"Can't load group notes ("+S.gerr[w.id]+"). The latest Firebase rules probably haven't been published yet."):null,
   ms.map(m=>h('div',{},h('b',{},m.id===S.uid?'You':m.name),m.note?': '+m.note:'')),
-  inp,h('button',{class:'s',onclick:()=>setNote(w.id,inp.value)},'Save my note'));
+  inp,h('button',{class:'s',onclick:()=>setNote(w.id,inp.value).catch(x=>alert('Could not save note: '+(x.code||x.message)))},'Save my note'));
 }
 async function setNote(id,note){await setDoc(doc(db,'groups',id,'members',S.uid),{name:me().name,note:note.trim().slice(0,140),ts:Date.now()})}
 function start(u){
@@ -128,6 +133,7 @@ function render(){
  $('#sw').textContent=S.reg?'I have an account':'Create account';$('#cw').classList.toggle('hide',!S.reg);
  $('#who').replaceChildren(...(S.uid?[h('span',{class:'mu'},(me()?.name||'')+' '),h('button',{class:'s',onclick:()=>signOut(auth)},'Log out')]:[]));
  if(!on)return;
+ heal();
  const mine=S.wishes.filter(w=>w.owner===S.uid),days=Math.ceil((new Date(EVENT_DATE+'T00:00')-new Date())/864e5);
  const empty=S.profiles.filter(p=>p.id!==S.uid&&!S.wishes.some(w=>w.owner===p.id)).length;
  $('#bn').textContent=(days>0?`🎁 ${days} days until Christmas.`:'🎅 Merry Christmas!')+(mine.length===0?' You haven\'t added any wishes yet!':'')+(empty?` ${empty} ${empty>1?'people haven\'t':'person hasn\'t'} made a list yet.`:'')+(S.gifts.length===0&&days>0&&days<=30?' You haven\'t picked any gifts yet — time to shop!':'');
@@ -158,16 +164,19 @@ function item(w,own){
   h('div',{class:'b'},h('div',{class:'ti'},w.title,w.pri?h('span',{class:'pr'},PR[w.pri]):null,
     strike?h('span',{class:'tag'},'taken'):null,(!own&&w.group)?h('span',{class:'tag'},n?'group gift · '+n+' picked':'group gift'):null),
    w.note?h('div',{class:'mu'},w.note):null,w.price?h('div',{class:'mu'},w.price):null,
-   safeUrl(w.link)?h('a',{href:w.link,target:'_blank',rel:'noopener noreferrer'},'View link'):null),
+   safeUrl(w.link)?h('a',{href:w.link,target:'_blank',rel:'noopener noreferrer'},'View link'):null,
+   (mine&&w.group)?h('div',{class:'mu'},'📝 You picked this. See the group notes in "My to gift list".'):null),
   h('div',{class:'btns'},act));
 }
 // ---- gifting: public count only; who chose it lives in users/<uid>/gifts (private) ----
 async function take(w){
  await setDoc(doc(db,'taken',w.id),{n:increment(1)},{merge:true});
  await setDoc(doc(db,'users',S.uid,'gifts',w.id),{wish:w.id,owner:w.owner,title:w.title,ts:Date.now()});
- if(w.group)await setNote(w.id,'');
+ delete S.left[w.id];delete S.joined[w.id];
+ if(w.group)await setNote(w.id,'').catch(x=>alert('Picked! But group notes are unavailable: '+(x.code||x.message)));
 }
 async function release(id){
+ S.left[id]=1;
  await deleteDoc(doc(db,'groups',id,'members',S.uid)).catch(()=>{});
  await deleteDoc(doc(db,'users',S.uid,'gifts',id));
  const left=(S.taken[id]||1)-1;
